@@ -1,8 +1,9 @@
 import os
-import urllib2
-import urllib
+#import urllib2
+#import urllib
 import sys
 import math
+import requests
 #
 # Refer https://wiki.cancerimagingarchive.net/display/Public/REST+API+Usage+Guide for complete list of API
 #
@@ -22,13 +23,18 @@ class TCIAClient:
         self.apiKey = apiKey
         self.baseUrl = baseUrl + "/" + resource
 
-    def execute(self, url, queryParameters={}):
-        queryParameters = dict((k, v) for k, v in queryParameters.iteritems() if v)
+    def execute(self, url, qps={}):
+        #queryParameters = dict((k, v) for k, v in queryParameters.iteritems() if v)
+        queryParameters = {}
+        for key in qps.keys():
+            if qps[key] != None:
+                queryParameters[key] =qps[key]
         headers = {"api_key" : self.apiKey }
-        queryString = "?%s" % urllib.urlencode(queryParameters)
-        requestUrl = url + queryString
-        request = urllib2.Request(url=requestUrl , headers=headers)
-        resp = urllib2.urlopen(request)
+        #queryString = "?%s" % urllib.urlencode(queryParameters)
+        #requestUrl = url + queryString
+        #request = urllib2.Request(url=requestUrl , headers=headers)
+        #resp = urllib2.urlopen(request)
+        resp = requests.get(url, params=queryParameters, headers=headers)
         return resp
 
     def get_modality_values(self,collection = None , bodyPartExamined = None , modality = None , outputFormat = "json" ):
@@ -47,7 +53,7 @@ class TCIAClient:
     def contents_by_name(self, name = None):
         serviceUrl = self.baseUrl + "/query/" + self.CONTENTS_BY_NAME
         queryParameters = {"name" : name}
-        print serviceUrl
+#        print serviceUrl
         resp = self.execute(serviceUrl,queryParameters)
         return resp
 
@@ -87,26 +93,26 @@ class TCIAClient:
         resp = self.execute(serviceUrl , queryParameters)
         return resp
 
-    def get_image(self , seriesInstanceUid , downloadPath, zipFileName):
-        serviceUrl = self.baseUrl + "/query/" + self.GET_IMAGE
-        queryParameters = { "SeriesInstanceUID" : seriesInstanceUid }
-        os.umask(0002)
-        try:
-            file = os.path.join(downloadPath, zipFileName)
-            resp = self.execute( serviceUrl , queryParameters)
-            downloaded = 0
-            CHUNK = 256 * 10240
-            with open(file, 'wb') as fp:
-                while True:
-                    chunk = resp.read(CHUNK)
-                    downloaded += len(chunk)
-                    if not chunk: break
-                    fp.write(chunk)
-        except urllib2.HTTPError, e:
-            print "HTTP Error:",e.code , serviceUrl
-            return False
-        except urllib2.URLError, e:
-            print "URL Error:",e.reason , serviceUrl
-            return False
-
-        return True
+#    def get_image(self , seriesInstanceUid , downloadPath, zipFileName):
+#        serviceUrl = self.baseUrl + "/query/" + self.GET_IMAGE
+#        queryParameters = { "SeriesInstanceUID" : seriesInstanceUid }
+#        os.umask(0002)
+#        try:
+#            file = os.path.join(downloadPath, zipFileName)
+#            resp = self.execute( serviceUrl , queryParameters)
+#            downloaded = 0
+#            CHUNK = 256 * 10240
+#            with open(file, 'wb') as fp:
+#                while True:
+#                    chunk = resp.read(CHUNK)
+#                    downloaded += len(chunk)
+#                    if not chunk: break
+#                    fp.write(chunk)
+#        except urllib2.HTTPError, e:
+#            print "HTTP Error:",e.code , serviceUrl
+#            return False
+#        except urllib2.URLError, e:
+#            print "URL Error:",e.reason , serviceUrl
+#            return False
+#
+#        return True
